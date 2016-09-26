@@ -55,9 +55,18 @@ public class BlockBreakerPanel extends JPanel implements KeyListener {
         paddle.draw(g, this);
         for (Block b: ball)
             b.draw(g, this);
+        for (Block b: powerup)
+            b.draw(g, this);
     }
 
     public void update() {
+        for (Block p: powerup) {
+            p.y ++;
+            if (p.intersects(paddle) && !p.destroyed) {
+                ball.add(new Block(paddle.dx + 25, 437, 25, 25, "img/ball.png"));
+                p.destroyed =true;
+            }
+        }
         for (Block ba: ball) {
             if (ba.x <=0 || (ba.x >= getWidth()- blockSize))
                 ba.dx *= -1;
@@ -66,13 +75,11 @@ public class BlockBreakerPanel extends JPanel implements KeyListener {
             ba.x += ba.dx;
             ba.y += ba.dy;
             for (Block b: blocks) {
-                if ((ba.intersects(b.left) || ba.intersects(b.right)) && !ba.destroyed) {
+                if ((ba.intersects(b.left) || ba.intersects(b.right) || ba.intersects(b)) && !b.destroyed) {
                     b.destroyed =true;
                     ba.dx *= -1;
-                }
-                if (ba.intersects(b) && !b.destroyed) {
-                    b.destroyed = true;
-                    ba.dy *= -1;
+                    if (b.powerup)
+                        powerup.add(new Block(b.x, b.y, 25, 19, "img/extra.png"));
                 }
             }
         }
