@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Created by Jerrydream on 2016-09-24.
@@ -10,9 +11,13 @@ import java.util.ArrayList;
 public class BlockBreakerPanel extends JPanel implements KeyListener {
 
     ArrayList<Block> blocks = new ArrayList<Block>();
+    ArrayList<Block> ball = new ArrayList<Block>();
+    ArrayList<Block> powerup = new ArrayList<Block>();
     Block paddle;
     Thread thread;
     Animate animate;
+    int blockSize;
+    Random random;
 
     BlockBreakerPanel() {
         // constructor of BlockBreaker
@@ -32,6 +37,13 @@ public class BlockBreakerPanel extends JPanel implements KeyListener {
         for (int i=0; i<8; i++) {
             blocks.add(new Block(i*60+2, 75, 60, 25, "img/yellow.png"));
         }
+        // initially, we add one ball to the game
+        ball.add(new Block(237, 437, 25, 25, "img/ball.png"));
+        blockSize = 25;
+        random = new Random();
+        for (int i =0; i < 7; i++)
+            blocks.get(random.nextInt(32)).powerup = true;
+
     }
 
     public void paintComponent(Graphics g) {
@@ -41,9 +53,29 @@ public class BlockBreakerPanel extends JPanel implements KeyListener {
         for (Block b: blocks)
             b.draw(g, this);
         paddle.draw(g, this);
+        for (Block b: ball)
+            b.draw(g, this);
     }
 
     public void update() {
+        for (Block ba: ball) {
+            if (ba.x <=0 || (ba.x >= getWidth()- blockSize))
+                ba.dx *= -1;
+            if (ba.y <= 0 || ba.intersects(paddle))
+                ba.dy *= -1;
+            ba.x += ba.dx;
+            ba.y += ba.dy;
+            for (Block b: blocks) {
+                if ((ba.intersects(b.left) || ba.intersects(b.right)) && !ba.destroyed) {
+                    b.destroyed =true;
+                    ba.dx *= -1;
+                }
+                if (ba.intersects(b) && !b.destroyed) {
+                    b.destroyed = true;
+                    ba.dy *= -1;
+                }
+            }
+        }
         repaint();
     }
 
